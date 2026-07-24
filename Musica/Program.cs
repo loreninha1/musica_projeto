@@ -53,19 +53,17 @@ app.MapGet("/musica", () =>
 {
     Musica[] MusicasCadastradas = new Musica[totalMusica];
 
-    for(int i = 0; i < totalMusica; i ++)
+    for (int i = 0; i < totalMusica; i++)
     {
         MusicasCadastradas[i] = musicas[i];
     }
-    return Results.Ok(
-        new{
-            musicas = MusicasCadastradas
-        }
-    );
 
+    // RETORNE DIRETO O ARRAY AQUI:
+    return Results.Ok(MusicasCadastradas);
 });
 
-app.MapGet("/musica/{titulo}", (string titulo) =>
+
+app.MapGet("/musica/titulo{titulo}", (string titulo) =>
 {
     Musica[] encontradas = new Musica[totalMusica];
     int totalEncontrados = 0;
@@ -152,7 +150,7 @@ app.MapDelete("/musica/{id}", (int id) =>
     });
 });
 
-app.MapGet("/musica/artista/{artista}", (string artista) =>
+app.MapGet("/musica/artista{artista}", (string artista) =>
 {
     Musica[] encontradas = new Musica[totalMusica];
 
