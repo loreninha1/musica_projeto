@@ -1,4 +1,4 @@
-namespace Musica.Models;
+namespace Models;
 
 public class Musica {
     

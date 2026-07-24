@@ -1,4 +1,4 @@
-using Musica.Models;
+using Models;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,65 +19,99 @@ var app = builder.Build();
 
 app.UseCors("AllowAll");
 
-Ritmo[] ritmos = new Ritmo[100];
-int totalRitmo = 0;
+Musica[] musicas = new Musica[100];
+int totalMusica = 0;
 
 app.MapGet("/", () =>
 {
-    return Results.Ok("API Ritmo funcionando com sucesso!");
+    return Results.Ok("API Musica funcionando com sucesso!");
 });
 
-app.MapPost("/ritmos", (JsonElement body) =>
+app.MapPost("/musica", (JsonElement body) =>
 {
     Random random= new();
-    Ritmo ritmos = new Ritmo();
+    Musica novaMusica = new Musica();
 
-    ritmos.Id = random.Next(1000,9999);
-    ritmos.Titulo = body.GetProperty("titulo").GetString();
-    ritmos.Artista = body.GetProperty("artista").GetString();
-    ritmos.Compositor = body.GetProperty("compositor").GetString();
-    ritmos.Genero = body.GetProperty("genero").GetString();
-    ritmos.Ano = body.GetProperty("ano").GetInt32();
+    novaMusica.Id = random.Next(1000,9999);
+    novaMusica.Titulo = body.GetProperty("titulo").GetString();
+    novaMusica.Artista = body.GetProperty("artista").GetString();
+    novaMusica.Compositor = body.GetProperty("compositor").GetString();
+    novaMusica.Genero = body.GetProperty("genero").GetString();
+    novaMusica.Ano = body.GetProperty("ano").GetInt32();
 
-    ritmos[totalMusica] = ritmos;
+    musicas[totalMusica] = novaMusica;
     totalMusica++;
 
     return Results.Ok(
         new{
-            ritmos
+            musica = novaMusica
         }
     );
 });
 
-app.MapGet("/ritmos", () =>
+app.MapGet("/musica", () =>
 {
-    Musica[] ritmosCadastrados = new Musica[totalMusica];
+    Musica[] MusicasCadastradas = new Musica[totalMusica];
 
     for(int i = 0; i < totalMusica; i ++)
     {
-        ritmosCadastrados[i] = ritmos[i];
+        MusicasCadastradas[i] = musicas[i];
     }
     return Results.Ok(
         new{
-            ritmosCadastrados
+            musicas = MusicasCadastradas
         }
     );
 
 });
 
-app.MapPatch("/ritmos/{id}", (int id, JsonElement body) =>
+app.MapGet("/musica/{titulo}", (string titulo) =>
 {
-    double novo_salario = body.GetProperty("salario").GetDouble();
+    Musica[] encontradas = new Musica[totalMusica];
+    int totalEncontrados = 0;
 
-    for (int i = 0; i < totalFuncionarios; i++)
+    for(int i = 0; i < totalMusica; i++)
     {
-        if (ritmos[i].Id == id)
+        if (musicas[i].Titulo.ToLower() == titulo.ToLower())
         {
-            ritmos[i].Salario = novo_salario;
+            encontradas[totalEncontrados] = musicas[i];
+            totalEncontrados++;
+        }
+    }
+
+    if (totalEncontrados > 0)
+    {
+        Musica[] resultadoFinal = new Musica[totalEncontrados];
+        for (int i = 0; i < totalEncontrados; i++)
+        {
+            resultadoFinal[i] = encontradas[i];
+        }
+        return Results.Ok(
+            new{
+                titulo, musicas = resultadoFinal 
+            }
+        );
+    }
+
+    return Results.NotFound(new 
+    {
+            message = "Nenhuma música encontrada com este título." 
+    });
+});
+
+app.MapPatch("/musica/{id}", (int id, JsonElement body) =>
+{
+    string novoTitulo = body.GetProperty("titulo").GetString();
+
+    for (int i = 0; i < totalMusica; i++)
+    {
+        if (musicas[i].Id == id)
+        {
+            musicas[i].Titulo = novoTitulo;
             return Results.Ok(
-                new
-                {
-                    ritmos = ritmos[i]
+                new{
+                    mensagem = "Título modificado com sucesso.",
+                    musica = musicas[i]
                 }
             );
         }
@@ -85,111 +119,180 @@ app.MapPatch("/ritmos/{id}", (int id, JsonElement body) =>
 
     return Results.NotFound(new
     {
-        message = "Funcionário não encontrado."
+        message = "Música não encontrada."
     });
 });
 
-app.MapDelete("/ritmos/{id}", (int id) =>
+app.MapDelete("/musica/{id}", (int id) =>
 {
-    for (int i = 0; i < totalFuncionarios; i++)
+    for (int i = 0; i < totalMusica; i++)
     {
-        if (ritmos[i].Id == id)
+        if (musicas[i].Id == id)
         {
-            Funcionario ritmosRemovidos = ritmos[i];
+            Musica musicaRemovida = musicas[i];
             
-            for (int j = i; j < totalRitmo - 1; j++)
+            for (int j = i; j < totalMusica - 1; j++)
             {
-                ritmos[j] = ritmos[j + 1];
+                musicas[j] = musicas[j + 1];
             }            
 
-            totalRitmo--;
+            totalMusica--;
 
             return Results.Ok(new
             {
-                mensagem = "Ritmo removido com sucesso.",
-                ritmos = ritmosRemovidos
+                mensagem = "Música removida com sucesso.",
+                musica = musicaRemovida
             });
         }
     }
 
     return Results.NotFound(new
     {
-        message = "Ritmo não encontrado."
+        message = "Música não encontrada."
     });
 });
 
-app.MapGet("/ritmos/genero/busca/{genero}", (string genero) =>
+app.MapGet("/musica/artista/{artista}", (string artista) =>
 {
-    Ritmo[] ritmosEncontrados = new Ritmo[totalRitmo];
+    Musica[] encontradas = new Musica[totalMusica];
 
     int totalEncontrados = 0;
 
-    for (int i = 0; i < totalRitmo; i++)
+    for (int i = 0; i < totalMusica; i++)
     {
-        if (ritmos[i].Genero.ToLower() == genero.ToLower())
-        // if (ritmos[i].Genero.ToLower().Equals(genero, StringComparison.CurrentCultureIgnoreCase))
+        if (musicas[i].Artista.ToLower() == artista.ToLower())
         {
-            ritmosEncontrados[totalEncontrados] = ritmos[i];
+            encontradas[totalEncontrados] = musicas[i];
             totalEncontrados++;
         }
     }
 
     if (totalEncontrados > 0)
     {
-        Ritmo[] resultadoFinal = new Ritmo[totalEncontrados];
+        Musica[] resultadoFinal = new Musica[totalEncontrados];
 
         for (int i = 0; i < totalEncontrados; i++)
         {
-            resultadoFinal[i] = ritmosEncontrados[i];
+            resultadoFinal[i] = encontradas[i];
         }        
 
         return Results.Ok(new
         {
-            genero,
-            ritmos = ritmosEncontrados
+            artista,
+            musicas = resultadoFinal
         });
     } 
 
     return Results.NotFound(new
     {
-        message = "Nenhum ritmo encontrado para esse gênero."
+        message = "Nenhuma música encontrada para esse artista."
     });
 });
 
-app.MapGet("/ritmos/busca/{titulo}", (string titulo) =>
+app.MapGet("/musica/compositor/{compositor}", (string compositor) =>
 {
-   Ritmo[] ritmosEncontrados = new Ritmo[totalRitmo];
+    Musica[] encontradas = new Musica[totalMusica];
 
     int totalEncontrados = 0;
 
-    for (int i = 0; i < totalRitmo; i++)
+    for (int i = 0; i < totalMusica; i++)
     {
-        if (ritmos[i].Titulo.ToLower() == titulo.ToLower())
+        if (musicas[i].Compositor.ToLower() == compositor.ToLower())
         {
-           ritmosEncontrados[totalEncontrados] = ritmos[i];
+           encontradas[totalEncontrados] = musicas[i];
+           totalEncontrados++;
+        }
+    }
+
+    if (totalEncontrados > 0)
+    {
+        Musica[] resultadoFinal = new Musica[totalEncontrados];
+
+        for (int i = 0; i < totalEncontrados; i++)
+        {
+            resultadoFinal[i] = encontradas[i];
+        }        
+
+        return Results.Ok(new
+        {
+            compositor,
+            musicas = resultadoFinal
+        });
+    } 
+
+    return Results.NotFound(new
+    {
+        message = "Nenhuma música encontrada para esse compositor."
+    });
+});
+
+app.MapGet("/musica/genero/{genero}", (string genero) =>
+{
+    Musica[] encontradas = new Musica[totalMusica];
+
+    int totalEncontrados = 0;
+
+    for (int i = 0; i < totalMusica; i++)
+    {
+        if (musicas[i].Genero.ToLower() == genero.ToLower())
+        {
+            encontradas[totalEncontrados] = musicas[i];
             totalEncontrados++;
         }
     }
 
     if (totalEncontrados > 0)
     {
-        Ritmo[] resultadoFinal = new Ritmo[totalEncontrados];
+        Musica[] resultadoFinal = new Musica[totalEncontrados];
 
         for (int i = 0; i < totalEncontrados; i++)
         {
-            resultadoFinal[i] = ritmosEncontrados[i];
-        }        
-
-        return Results.Ok(new
-        {
-            nome,
-            ritmos = ritmosEncontrados
+            resultadoFinal[i] = encontradas[i];
+        }
+        return Results.Ok(new 
+        { 
+            genero, musicas = resultadoFinal 
         });
-    } 
+    }
+
+    return Results.NotFound(new 
+    {
+        message = "Nenhuma música encontrada para esse gênero." 
+    });
+});
+
+app.MapGet("/musica/ano/{ano}", (int ano) =>
+{
+    Musica[] encontradas = new Musica[totalMusica];
+
+    int totalEncontrados = 0;
+
+    for (int i = 0; i < totalMusica; i++)
+    {
+        if (musicas[i].Ano == ano)
+        {
+            encontradas[totalEncontrados] = musicas[i];
+            totalEncontrados++;
+        }
+    }
+
+    if (totalEncontrados > 0)
+    {
+        Musica[] resultadoFinal = new Musica[totalEncontrados];
+
+        for (int i = 0; i < totalEncontrados; i++)
+        {
+            resultadoFinal[i] = encontradas[i];
+        }
+        return Results.Ok(new 
+        { 
+            ano, musicas = resultadoFinal 
+        });
+    }
 
     return Results.NotFound(new
-    {
-        message = "Nenhum ritmo encontrado nesse título."
+     { 
+        message = "Nenhuma música encontrada para esse ano." 
     });
 });
 
